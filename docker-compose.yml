@@ -1,0 +1,57 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  # 1. PHP Application Service (fin-app)
+  fin-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: php8.2-fpm-mongo
+    container_name: fin-php-app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+    environment:
+      MONGO_HOST: fin-mongo
+    networks:
+      - fin-flora-network
+
+  # 2. Web Server Service
+  fin-web:
+    image: nginx:alpine
+    container_name: fin-nginx-web
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      # Nginx config must now point to the 'fin-app' service
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    # Depends on the 'fin-app' service
+    depends_on:
+      - fin-app
+    networks:
+      - fin-flora-network
+
+  # 3. MongoDB Database Service
+  fin-mongo:
+    image: mongo:latest
+    container_name: fin-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - fin-flora-network
+
+# Define a network with the project name
+networks:
+  fin-flora-network:
+    driver: bridge
+
+# Persistent volume for MongoDB data
+volumes:
+  mongodata:
+    driver: local

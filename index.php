@@ -1,6 +1,5 @@
 <?php
 require 'vendor/autoload.php';
-
 $mongo_host = getenv('MONGO_HOST') ?: 'fin-mongo';
 
 echo "<h1>PHP and MongoDB Docker Setup Check</h1>";
